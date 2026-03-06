@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Tic Tac Toe · Friends & AI ✨</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a2639 0%, #2c3e50 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-container {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border-radius: 3.5rem;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.6), inset 0 2px 2px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            width: min(550px, 96%);
+        }
+        h1 {
+            text-align: center;
+            color: #f5e9d8;
+            font-weight: 500;
+            font-size: 2.6rem;
+            letter-spacing: 4px;
+            text-shadow: 0 5px 0 #9b6b43, 0 8px 12px black;
+            margin-top: -0.5rem;
+            margin-bottom: 1.8rem;
+            word-break: keep-all;
+        }
+        .mode-panel {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            background: #2a384b;
+            border: none;
+            color: #cfddee;
+            font-size: 1.25rem;
+            font-weight: 600;
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 #0f1a24, 0 6px 15px black;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            border: 1px solid #ffcf9a;
+            flex: 1 1 0;
+            min-width: 150px;
+            letter-spacing: 1px;
+        }
+        .mode-btn.active {
+            background: #e4a11b;
+            color: #1d1e2c;
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #9e6913, 0 6px 15px black;
+            border-color: gold;
+            font-weight: 700;
+        }
+        .turn-indicator {
+            background: #1e2b38;
+            padding: 1rem 1.5rem;
+            border-radius: 60px;
+            margin: 1rem 0 2rem 0;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #fadf9e;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.6), 0 6px 0 #0b1219;
+            border: 1px solid #cbaa75;
+        }
+        .turn-icon {
+            display: inline-block;
+            margin: 0 12px;
+            filter: drop-shadow(0 4px 2px black);
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            aspect-ratio: 1/1;
+            margin: 1.8rem 0 2rem;
+        }
+        .cell {
+            background: #213140;
+            border-radius: 2rem;
+            box-shadow: 0 10px 0 #0f171f, 0 8px 18px black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5.2rem;
+            font-weight: 700;
+            color: #fad377;
+            text-shadow: 0 5px 0 #a1591c, 0 8px 10px black;
+            aspect-ratio: 1/1;
+            cursor: pointer;
+            transition: 0.07s linear;
+            border: 2px solid #ffd78c;
+            user-select: none;
+        }
+        .cell.win-glow {
+            background: #3d5a3d;
+            box-shadow: 0 0 25px #b5ff8f, 0 10px 0 #1b4b1b;
+            color: #eeffb3;
+            border-color: limegreen;
+            transform: scale(1.02);
+        }
+        .cell:active:not(.disabled) {
+            transform: translateY(7px);
+            box-shadow: 0 3px 0 #0f171f;
+        }
+        .cell.disabled {
+            cursor: not-allowed;
+            opacity: 0.9;
+            filter: grayscale(0.2);
+            box-shadow: 0 5px 0 #0f171f;
+            transform: translateY(5px);
+        }
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            background: #1b2633;
+            border-radius: 4rem;
+            padding: 1rem 2.2rem;
+            margin: 2.2rem 0 1.2rem;
+            border: 1px solid #eeb863;
+            box-shadow: inset 0 3px 8px black;
+        }
+        .score-item {
+            text-align: center;
+            color: #f5d7b3;
+        }
+        .score-label {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #bc9f72;
+        }
+        .score-value {
+            font-size: 2.3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            text-shadow: 0 3px 0 #7a4f1d;
+        }
+        .restart-btn {
+            background: #d48d2c;
+            border: none;
+            color: #1e242e;
+            font-size: 1.6rem;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            width: 100%;
+            border-radius: 50px;
+            box-shadow: 0 9px 0 #8e581b, 0 6px 15px black;
+            cursor: pointer;
+            transition: 0.06s linear;
+            border: 2px solid #ffcd94;
+            letter-spacing: 3px;
+            margin-top: 0.5rem;
+        }
+        .restart-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 3px 0 #8e581b;
+        }
+        .footer-note {
+            color: #aab8c5;
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: 300;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>⨉ TIC TAC TOE ○</h1>
+
+        <!-- mode selector (friends / AI) -->
+        <div class="mode-panel">
+            <button class="mode-btn active" id="mode-friends">👥 FRIENDS</button>
+            <button class="mode-btn" id="mode-ai">🤖 AI (hard)</button>
+        </div>
+
+        <!-- turn / status display -->
+        <div class="turn-indicator" id="turn-indicator">
+            <span id="turn-text">Player ⨉ turn</span>
+        </div>
+
+        <!-- game grid -->
+        <div class="board" id="board">
+            <!-- javascript will inject 9 cells -->
+        </div>
+
+        <!-- scoreboard (X wins, O wins, ties) -->
+        <div class="scoreboard">
+            <div class="score-item"><span class="score-label">⨉ wins</span><div class="score-value" id="score-x">0</div></div>
+            <div class="score-item"><span class="score-label">ties</span><div class="score-value" id="score-tie">0</div></div>
+            <div class="score-item"><span class="score-label">○ wins</span><div class="score-value" id="score-o">0</div></div>
+        </div>
+
+        <!-- restart / new game -->
+        <button class="restart-btn" id="restart-btn">↻ NEW GAME</button>
+        <div class="footer-note">⚡ friends · AI · smart moves ⚡</div>
+    </div>
+
+    <script>
+        (function() {
+            // -------------------- state --------------------
+            let board = ['', '', '', '', '', '', '', '', ''];
+            let currentPlayer = 'X';        // X always starts
+            let gameActive = true;
+            let mode = 'friends';            // 'friends' or 'ai'
+            let winningCombination = [];      // store indices of win line
+
+            // scores
+            let xWins = 0, oWins = 0, ties = 0;
+
+            // DOM elements
+            const boardEl = document.getElementById('board');
+            const turnText = document.getElementById('turn-text');
+            const modeFriendsBtn = document.getElementById('mode-friends');
+            const modeAiBtn = document.getElementById('mode-ai');
+            const restartBtn = document.getElementById('restart-btn');
+            const scoreX = document.getElementById('score-x');
+            const scoreO = document.getElementById('score-o');
+            const scoreTie = document.getElementById('score-tie');
+
+            // create board cells dynamically (9 cells)
+            function createBoardUI() {
+                boardEl.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.dataset.index = i;
+                    cell.textContent = '';   // will be set by updateBoard
+                    cell.addEventListener('click', handleCellClick);
+                    boardEl.appendChild(cell);
+                }
+            }
+            createBoardUI();
+
+            // update UI from board array, also manage win class
+            function updateBoardUI() {
+                const cells = document.querySelectorAll('.cell');
+                for (let i = 0; i < 9; i++) {
+                    cells[i].textContent = board[i];
+                    // remove previous win-glow
+                    cells[i].classList.remove('win-glow');
+                    cells[i].classList.remove('disabled');
+                }
+                if (winningCombination.length > 0) {
+                    winningCombination.forEach(idx => {
+                        cells[idx].classList.add('win-glow');
+                    });
+                }
+                // if game inactive but no win (tie) disable all, else disable only if gameActive false or cell occupied
+                if (!gameActive) {
+                    cells.forEach(c => c.classList.add('disabled'));
+                } else {
+                    cells.forEach((c, i) => {
+                        if (board[i] !== '') c.classList.add('disabled');
+                        else c.classList.remove('disabled');
+                    });
+                }
+            }
+
+            // winning combinations
+            const winPatterns = [
+                [0,1,2],[3,4,5],[6,7,8], // rows
+                [0,3,6],[1,4,7],[2,5,8], // cols
+                [0,4,8],[2,4,6]          // diags
+            ];
+
+            // check winner, returns 'X', 'O', 'tie', or null if still playing
+            function checkGameStatus() {
+                // check win
+                for (let pattern of winPatterns) {
+                    const [a,b,c] = pattern;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                        return { winner: board[a], combination: pattern };
+                    }
+                }
+                // check tie (board full)
+                if (board.every(cell => cell !== '')) {
+                    return { winner: 'tie', combination: [] };
+                }
+                return { winner: null, combination: [] };
+            }
+
+            // apply game over: update scores, turn indicator, UI
+            function handleGameOver(winner, combination) {
+                gameActive = false;
+                winningCombination = combination;
+                if (winner === 'X') {
+                    xWins++;
+                    turnText.innerText = '🏆 X wins!';
+                } else if (winner === 'O') {
+                    oWins++;
+                    turnText.innerText = '🏆 O wins!';
+                } else if (winner === 'tie') {
+                    ties++;
+                    turnText.innerText = '🤝 Tie game';
+                }
+                // update score displays
+                scoreX.innerText = xWins;
+                scoreO.innerText = oWins;
+                scoreTie.innerText = ties;
+                updateBoardUI();
+            }
+
+            // switch player (X <-> O)
+            function switchPlayer() {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                turnText.innerText = `Player ${currentPlayer} turn`;
+            }
+
+            // core move execution: place mark, check win, switch or gameover
+            function makeMove(index, player) {
+                if (!gameActive) return false;
+                if (board[index] !== '') return false;
+                if (player !== currentPlayer) return false; // just in case
+
+                // apply move
+                board[index] = player;
+                updateBoardUI();
+
+                // check game status
+                const { winner, combination } = checkGameStatus();
+                if (winner) {
+                    handleGameOver(winner, combination);
+                } else {
+                    // switch turn
+                    switchPlayer();
+                    // if mode is AI and currentPlayer becomes 'O' and game still active, call AI move
+                    if (mode === 'ai' && currentPlayer === 'O' && gameActive) {
+                        setTimeout(() => aiMove(), 200); // slight delay for drama
+                    }
+                }
+                return true;
+            }
+
+            // human move handler (click)
+            function handleCellClick(e) {
+                const index = e.currentTarget.dataset.index;
+                if (!gameActive) return;
+                if (board[index] !== '') return;
+
+                // friends mode: anyone can click
+                if (mode === 'friends') {
+                    makeMove(index, currentPlayer);
+                } 
+                // AI mode: only allow if currentPlayer is X (human). AI is O
+                else if (mode === 'ai') {
+                    if (currentPlayer === 'X') {
+                        makeMove(index, 'X');
+                    }
+                    // if currentPlayer is O, click is ignored (AI turn)
+                }
+            }
+
+            // ---------- AI (smart but simple minimax) ----------
+            function minimax(newBoard, depth, isMaximizing) {
+                // evaluate current board
+                const winnerCheck = (() => {
+                    for (let p of winPatterns) {
+                        const [a,b,c] = p;
+                        if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
+                            return newBoard[a];
+                        }
+                    }
+                    if (newBoard.every(cell => cell !== '')) return 'tie';
+                    return null;
+                })();
+
+                if (winnerCheck === 'O') return 10 - depth;   // AI (O) prefers quick win
+                if (winnerCheck === 'X') return depth - 10;   // human (X) win, bad for AI
+                if (winnerCheck === 'tie') return 0;
+
+                if (isMaximizing) {
+                    let best = -Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (newBoard[i] === '') {
+                            newBoard[i] = 'O';
+                            const score = minimax(newBoard, depth + 1, false);
+                            newBoard[i] = '';
+                            best = Math.max(score, best);
+                        }
+                    }
+                    return best;
+                } else {
+                    let best = Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (newBoard[i] === '') {
+                            newBoard[i] = 'X';
+                            const score = minimax(newBoard, depth + 1, true);
+                            newBoard[i] = '';
+                            best = Math.min(score, best);
+                        }
+                    }
+                    return best;
+                }
+            }
+
+            function getBestAIMove() {
+                let bestScore = -Infinity;
+                let bestMove = -1;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        const boardCopy = [...board];
+                        boardCopy[i] = 'O';
+                        const moveScore = minimax(boardCopy, 0, false);
+                        if (moveScore > bestScore) {
+                            bestScore = moveScore;
+                            bestMove = i;
+                        }
+                    }
+                }
+                return bestMove;
+            }
+
+            function aiMove() {
+                if (!gameActive) return;
+                if (currentPlayer !== 'O') return; // safety
+                if (mode !== 'ai') return;
+
+                const moveIndex = getBestAIMove();
+                if (moveIndex === -1) {
+                    // board might be full? but gameActive would have been false
+                    return;
+                }
+                // execute AI move (currentPlayer is 'O')
+                makeMove(moveIndex, 'O');
+            }
+
+            // ---------- restart game ----------
+            function resetGame() {
+                board = ['', '', '', '', '', '', '', '', ''];
+                currentPlayer = 'X';
+                gameActive = true;
+                winningCombination = [];
+                turnText.innerText = 'Player ⨉ turn';
+                updateBoardUI();
+
+                // if AI mode and it's AI turn? but X always starts, so human starts.
+                // all good.
+            }
+
+            // event: restart button
+            restartBtn.addEventListener('click', () => {
+                resetGame();
+            });
+
+            // mode switching
+            modeFriendsBtn.addEventListener('click', () => {
+                modeFriendsBtn.classList.add('active');
+                modeAiBtn.classList.remove('active');
+                mode = 'friends';
+                resetGame();
+            });
+
+            modeAiBtn.addEventListener('click', () => {
+                modeAiBtn.classList.add('active');
+                modeFriendsBtn.classList.remove('active');
+                mode = 'ai';
+                resetGame();
+            });
+
+            // reset on page load to set UI correctly
+            resetGame();
+
+            // additional safety: if AI game and AI turn on start? no, X always starts.
+            // everything fine.
+
+            // optionally double-check that after reset AI doesn't auto-move
+            // (human turn, so fine)
+
+            // Edge: after game over, AI shouldn't trigger. already prevented by gameActive
+
+            // initial scores update (0 already)
+        })();
+    </script>
+</body>
+</html>
